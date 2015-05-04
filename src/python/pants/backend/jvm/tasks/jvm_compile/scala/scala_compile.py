@@ -15,26 +15,12 @@ from pants.backend.jvm.tasks.jvm_compile.scala.zinc_utils import ZincUtils
 from pants.option.options import Options
 
 
-class ScalaCompile(JvmCompile):
-  _language = 'scala'
-  _file_suffix = '.scala'
+class ZincCompile(JvmCompile):
   _supports_concurrent_execution = True
 
   @classmethod
-  def get_args_default(cls, bootstrap_option_values):
-    return ('-S-encoding', '-SUTF-8','-S-g:vars')
-
-  @classmethod
-  def get_warning_args_default(cls):
-    return ('-S-deprecation', '-S-unchecked')
-
-  @classmethod
-  def get_no_warning_args_default(cls):
-    return ('-S-nowarn',)
-
-  @classmethod
   def register_options(cls, register):
-    super(ScalaCompile, cls).register_options(register)
+    super(ZincCompile, cls).register_options(register)
     # Note: Used in ZincUtils.
     # TODO: Revisit this. It's unintuitive for ZincUtils to reach back into the task for options.
     register('--plugins', action='append', help='Use these scalac plugins.')
@@ -44,7 +30,7 @@ class ScalaCompile(JvmCompile):
     ZincUtils.register_options(register, cls.register_jvm_tool)
 
   def __init__(self, *args, **kwargs):
-    super(ScalaCompile, self).__init__(*args, **kwargs)
+    super(ZincCompile, self).__init__(*args, **kwargs)
 
     # Set up the zinc utils.
     color = self.get_options().colors
@@ -97,3 +83,36 @@ class ScalaCompile(JvmCompile):
   def compile(self, args, classpath, sources, classes_output_dir, upstream_analysis, analysis_file):
     return self._zinc_utils.compile(args, classpath, sources,
                                     classes_output_dir, analysis_file, upstream_analysis)
+
+class ScalaZincCompile(ZincCompile):
+  _language = 'scala'
+  _file_suffix = '.scala'
+
+  @classmethod
+  def get_args_default(cls, bootstrap_option_values):
+    return ('-S-encoding', '-SUTF-8','-S-g:vars')
+
+  @classmethod
+  def get_warning_args_default(cls):
+    return ('-S-deprecation', '-S-unchecked')
+
+  @classmethod
+  def get_no_warning_args_default(cls):
+    return ('-S-nowarn',)
+
+class JavaZincCompile(ZincCompile):
+  _language = 'java'
+  _file_suffix = '.java'
+
+  @classmethod
+  def name(cls):
+    # Use a different name from 'java' so options from JMake version won't interfere.
+    return "zinc-java"
+
+  @classmethod
+  def register_options(cls, register):
+    super(JavaZincCompile, cls).register_options(register)
+    register('--enabled', action='store_true', default=False, help='Use zinc to compile Java targets')
+
+  def select(self, target):
+    return self.get_options().enabled and super(JavaZincCompile, self).select(target)
