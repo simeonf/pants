@@ -28,9 +28,8 @@ Troubleshooting
 ---------------
 
 -  Something that usually works just failed? See
-   [[Troubleshooting\|pants('src/docs:tshoot')]]
--  Publishing can fail in more ways. See [[Publishing
-   Artifacts\|pants('src/docs:publish')]].
+   :ref:`tshoot`.
+-  Publishing can fail in more ways. See :ref:`publish`.
 
 Pants Patterns
 --------------

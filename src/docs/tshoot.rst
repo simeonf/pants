@@ -1,3 +1,5 @@
+.. _tshoot:
+
 Troubleshooting
 ===============
 
